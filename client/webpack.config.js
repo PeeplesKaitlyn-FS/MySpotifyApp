@@ -7,4 +7,10 @@ module.exports = {
     filename: 'bundle.js',
   },
   mode: 'development',
+  rules: [
+    {
+      test: /\.html$/,
+      use: ['html-loader'],
+    },
+  ],
 };
