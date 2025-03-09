@@ -4,6 +4,10 @@ const port = 3000;
 
 app.use(express.static('public'));
 
+app.get('/', (req, res) => {
+  console.log('Server received a request');
+});
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
