@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project is a music search app that integrates with Spotify's REST Web API. The app allows users to search for music and view results with thumbnails that link to Spotify web player links.
+MySpotifyApp is a web application that allows users to search for music on Spotify. The app uses the Spotify API to fetch search results and display them to the user. The app features a simple search bar and a results page that displays the search results.
 
 ## Prerequisites
 
