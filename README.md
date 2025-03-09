@@ -12,12 +12,18 @@ This project is a music search app that integrates with Spotify's REST Web API. 
 
 ## Getting Started
 
-* Item 1
-* Item 2
-* Item 3
+The following environment variables are required:
+
+* Clone the repository to your local machine using git clone <https://github.com/PeeplesKaitlyn-FS/MySpotifyApp.git>
+* Install the dependencies using $npm install
+* Create a new file called .env in the root of the project and add your Spotify API credentials (client ID and client secret)
+* Start the server using npm start
+* Open a web browser and navigate to <http://localhost:3000> to access the app
 
 ## Links
 
-* Item 1
-* Item 2
-* Item 3
+* Local build URL: <http://localhost:3000>
+
+### Author
+
+Kaitlyn Peeples
