@@ -1,5 +1,7 @@
 import './styles/style.css';
 
-const html = require('./index.html');
+import html from './index.html';
 
-document.body.innerHTML = html;
+const app = document.getElementById('app');
+
+app.innerHTML = html;
