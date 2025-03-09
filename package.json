@@ -9,5 +9,8 @@
     "dev": "nodemon server/server.js"
   },
   "author": "Kaitlyn Peeples",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
