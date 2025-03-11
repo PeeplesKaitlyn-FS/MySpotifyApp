@@ -23,6 +23,7 @@ The following environment variables are required:
 ## Links
 
 * Local build URL: <http://localhost:3000>
+* GitHub repository: <https://github.com/PeeplesKaitlyn-FS/MySpotifyApp>
 
 ### Author
 
