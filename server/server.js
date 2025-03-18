@@ -35,8 +35,11 @@ app.use("/songs", songRouter);
 const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
 
+const callbackRouter = require("./routes/callback");
+app.use("/callback", callbackRouter);
+
 app.get('/callback', passport.authenticate('spotify', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/profile');
+  res.redirect("/callback");
 });
 
 const PORT = 3000;
