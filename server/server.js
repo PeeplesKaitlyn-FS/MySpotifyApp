@@ -1,15 +1,46 @@
 const express = require("express");
+require("dotenv").config();
+const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
+const passport = require('passport');
+
+console.log(process.env.SPOTIFY_CLIENT_ID);
+console.log(process.env.SPOTIFY_CLIENT_SECRET);
+const SpotifyStrategy = require('passport-spotify').Strategy;
+passport.use(new SpotifyStrategy({
+  clientID: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3000/callback',
+  scope: ['user-read-email', 'user-read-private', 'playlist-read-private'],
+}, (accessToken, refreshToken, profile, cb) => {
+  return cb(null, profile);
+}));
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+app.use(passport.initialize());
+
+const DATABASE_URL = process.env.DATABASE_URL;
+
+mongoose.connect(DATABASE_URL, { useNewUrlParser: true });
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Database Connection Established"));
+
+const songRouter = require("./routes/songRouter");
+app.use("/songs", songRouter);
+
+const authRouter = require("./routes/authRouter");
+const protectedRoute = require("./middleware/protectedRoute");
+app.use("/auth", protectedRoute, authRouter);
+
+app.get('/callback', passport.authenticate('spotify', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/profile');
+});
 
 const PORT = 3000;
-
-// API routes
-const apiRouter = require("./routes/song");
-app.use("/api", apiRouter);
 
 // Static build folder
 app.use(express.static(path.join(__dirname, "../client/public")));
@@ -22,3 +53,5 @@ app.get("/*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
 });
+
+module.exports = app;
