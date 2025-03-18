@@ -1,16 +1,24 @@
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+
 const app = express();
-const port = 3000;
+app.use(cors());
 
-app.use(express.static(path.join(__dirname, '../client/public')));
+const PORT = 3000;
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
+// API routes
+const apiRouter = require("./routes/song");
+app.use("/api", apiRouter);
+
+// Static build folder
+app.use(express.static(path.join(__dirname, "../client/public")));
+
+// Serve index.html for any unknown routes
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
-
-module.exports = app;
