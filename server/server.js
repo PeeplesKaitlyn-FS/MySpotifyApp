@@ -14,7 +14,7 @@ passport.use(new SpotifyStrategy({
   callbackURL: 'http://localhost:3000/callback',
   scope: ['user-read-email', 'user-read-private', 'playlist-read-private'],
 }, (accessToken, refreshToken, profile, cb) => {
-  return cb(null, profile);
+  return cb(null, profile, accessToken, refreshToken);
 }));
 
 const app = express();
