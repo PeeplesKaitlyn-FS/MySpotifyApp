@@ -2,51 +2,83 @@ const User = require("../models/user")
 const jwt = require("jwt-simple")
 const bcrypt = require("bcrypt")
 const config = require("../config")
+const passport = require('passport');
 
 const tokenForUser = (user) => {
-  const timestamp = new Date().getTime()
-  return jwt.encode({
+  const timestamp = new Date().getTime();
+  const token = jwt.encode({
     sub: user.id,
     iat: timestamp,
-    exp: timestamp + (60 * 60 * 24 * 7) // expires in 1 week
-  }, config.secret)
-}
+    exp: timestamp + (60 * 60 * 24 * 7), // expires in 1 week
+  }, config.secret);
+  User.findByIdAndUpdate(user.id, { token }, { new: true }, (err, user) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(`Token stored for user ${user.id}`);
+    }
+  });
+  return token;
+};
+
 
 exports.signin = async (req, res, next) => {
   try {
-    const user = req.user
+    const user = req.user;
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" })
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-    const isValidPassword = await bcrypt.compare(req.body.password, user.password)
+    const isValidPassword = await bcrypt.compare(req.body.password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid credentials" })
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-    res.send({ user_id: user._id, token: tokenForUser(user) })
+    const token = await User.findById(user.id).select('token');
+    if (!token) {
+      const newToken = tokenForUser(user);
+      await User.findByIdAndUpdate(user.id, { token: newToken }, { new: true });
+      res.send({ user_id: user._id, token: newToken });
+    } else {
+      res.send({ user_id: user._id, token: token.token });
+    }
   } catch (error) {
-    return next(error)
+    return next(error);
   }
 }
 
 exports.signup = async (req, res, next) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
   try {
     if (!email || !password) {
-      return res.status(422).json({ message: "Email and password are required" })
+      return res.status(422).json({ message: "Email and password are required" });
     }
-    const isValidEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
+    const isValidEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
     if (!isValidEmail) {
-      return res.status(422).json({ message: "Invalid email address" })
+      return res.status(422).json({ message: "Invalid email address" });
     }
-    const existingUser = await User.findOne({ email })
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(422).json({ message: "Email is already in use" })
+      return res.status(422).json({ message: "Email is already in use" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const user = new User({ email, password: hashedPassword })
-    await user.save()
-    res.json({ user_id: user._id, token: tokenForUser(user) })
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ email, password: hashedPassword });
+    await user.save();
+    const token = tokenForUser(user);
+    await User.findByIdAndUpdate(user.id, { token }, { new: true });
+    res.json({ user_id: user._id, token });
   } catch (error) {
-    return next(error)
+    return next(error);
   }
+}
+
+exports.callback = passport.authenticate('spotify', { failureRedirect: '/signin' }, async (req, res) => {
+  if (req.user) {
+    return res.status(401).json({ message: 'You are already authenticated' });
+  }
+  const user = req.user;
+  const token = tokenForUser(user);
+  res.json({ user_id: user._id, token });
+});
+
+exports.signout = (req, res) => {
+  res.send({ user_id: null, token: null })
 }
