@@ -1,7 +1,11 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './client/App.js';
 import './styles/style.css';
 
-import html from './index.html';
-
-const app = document.getElementById('app');
-
-app.innerHTML = html;
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
