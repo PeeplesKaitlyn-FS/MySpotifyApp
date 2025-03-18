@@ -44,10 +44,8 @@ app.get('/callback', passport.authenticate('spotify', { failureRedirect: '/' }),
 
 const PORT = 3000;
 
-// Static build folder
 app.use(express.static(path.join(__dirname, "../client/public")));
 
-// Serve index.html for any unknown routes
 app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/public", "index.html"));
 });
