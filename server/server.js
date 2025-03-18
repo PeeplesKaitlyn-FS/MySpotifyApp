@@ -1,5 +1,5 @@
 const express = require("express");
-require("dotenv").config();
+require('dotenv').config({ path: './server/.env' });
 const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
@@ -24,17 +24,16 @@ app.use(passport.initialize());
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-mongoose.connect(DATABASE_URL, { useNewUrlParser: true });
+mongoose.connect(DATABASE_URL);
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Database Connection Established"));
 
-const songRouter = require("./routes/songRouter");
+const songRouter = require("./routes/song");
 app.use("/songs", songRouter);
 
-const authRouter = require("./routes/authRouter");
-const protectedRoute = require("./middleware/protectedRoute");
-app.use("/auth", protectedRoute, authRouter);
+const authRouter = require("./routes/auth");
+app.use("/auth", authRouter);
 
 app.get('/callback', passport.authenticate('spotify', { failureRedirect: '/' }), (req, res) => {
   res.redirect('/profile');
@@ -47,7 +46,7 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 
 // Serve index.html for any unknown routes
 app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client", "index.html"));
+  res.sendFile(path.join(__dirname, "../client/public", "index.html"));
 });
 
 app.listen(PORT, () => {
