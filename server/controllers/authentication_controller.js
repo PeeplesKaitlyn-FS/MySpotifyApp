@@ -1,12 +1,14 @@
 const User = require("../models/user")
-const jwt = require("jwt-simple")
+const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt")
 const config = require("../config")
 const passport = require('passport');
+const { getTracksFromSpotify } = require('../routes/tracks');
+
 
 const tokenForUser = (user) => {
   const timestamp = new Date().getTime();
-  const token = jwt.encode({
+  const token = jwt.sign({
     sub: user.id,
     iat: timestamp,
     exp: timestamp + (60 * 60 * 24 * 7), // expires in 1 week
@@ -76,9 +78,23 @@ exports.callback = passport.authenticate('spotify', { failureRedirect: '/signin'
   }
   const user = req.user;
   const token = tokenForUser(user);
+  const accessToken = req.user.accessToken = req.query.access_token; 
+  req.session.accessToken = accessToken; 
   res.json({ user_id: user._id, token });
 });
 
 exports.signout = (req, res) => {
   res.send({ user_id: null, token: null })
 }
+
+exports.getTracks = async (req, res) => {
+    console.log('Get tracks endpoint called');
+    console.log('AccessToken:', req.session.accessToken); 
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'You must be logged in to access this route' });
+    }
+    const accessToken = req.session.accessToken;
+    const tracksFromSpotify = await getTracksFromSpotify(accessToken);
+    res.json(tracksFromSpotify);
+  };
