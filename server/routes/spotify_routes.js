@@ -8,6 +8,7 @@ router.post('/signup', authenticationController.signup);
 
 router.get('/tracks', authenticationController.getTracks);
 router.get('/playlists', authenticationController.getPlaylists);
+router.get('/profile', authenticationController.getProfile);
 
 router.get('/signout', authenticationController.signout);
 
