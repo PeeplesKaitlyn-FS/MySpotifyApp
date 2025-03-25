@@ -1,21 +1,23 @@
 const express = require("express");
-require('dotenv').config({ path: './server/.env' });
+require('dotenv').config();
+console.log(process.env);
+console.log(process.env.SPOTIFY_CLIENT_ID);
+console.log(process.env.SPOTIFY_CLIENT_SECRET);
 const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
 const passport = require('passport');
-
-console.log(process.env.SPOTIFY_CLIENT_ID);
-console.log(process.env.SPOTIFY_CLIENT_SECRET);
 const SpotifyStrategy = require('passport-spotify').Strategy;
-passport.use(new SpotifyStrategy({
+
+const spotifyStrategy = new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/callback',
-  scope: ['user-read-email', 'user-read-private', 'playlist-read-private'],
-}, (accessToken, refreshToken, profile, cb) => {
-  return cb(null, profile, accessToken, refreshToken);
-}));
+  callbackURL: '/auth/spotify/callback',
+}, (accessToken, refreshToken, expires_in, profile, done) => {
+  return done(null, profile, accessToken, refreshToken);
+});
+
+passport.use(spotifyStrategy); 
 
 const app = express();
 app.use(cors());
@@ -37,10 +39,6 @@ app.use("/auth", authRouter);
 
 const callbackRouter = require("./routes/callback");
 app.use("/callback", callbackRouter);
-
-app.get('/callback', passport.authenticate('spotify', { failureRedirect: '/' }), (req, res) => {
-  res.redirect("/callback");
-});
 
 const PORT = 3000;
 
