@@ -10,15 +10,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         lowercase: true,
-        required: 'Email address is required',
         validate: [validateEmail, 'Email Invalid'],
     },
     password: {
         type: String,
-        required: 'Password is required',
         minlength: [8, 'Password must be at least 8 characters long']
     },
     accessToken: {
+        type: String
+    },
+    spotifyId: {
         type: String
     },
     created_at: { 
@@ -28,22 +29,12 @@ const userSchema = new mongoose.Schema({
     },
 })
 
-userSchema.pre('save', function (next){
+userSchema.pre('save', async function (next){
     const user = this;
-    if(user.isNew || user.isModified('password')){
-        bcrypt.genSalt(10, (error, salt) => {
-            if(error) {return next(error)}
-            bcrypt.hash(user.password, salt, null, (error, hash) => {
-                if(error) {
-                    return next(error)
-                }
-                user.password = hash;
-                next();
-            })
-        })
-    } else {
-        return next()
+    if(user.password){
+        user.password = await bcrypt.hash(user.password, 10);
     }
+    next();
 })
 
 userSchema.methods.comparePassword = function(candidatePassword, callback){
