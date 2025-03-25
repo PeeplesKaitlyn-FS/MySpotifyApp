@@ -88,13 +88,18 @@ exports.signout = (req, res) => {
 }
 
 exports.getTracks = async (req, res) => {
-    console.log('Get tracks endpoint called');
-    console.log('AccessToken:', req.session.accessToken); 
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'You must be logged in to access this route' });
-    }
-    const accessToken = req.session.accessToken;
+  console.log('Get tracks endpoint called');
+  console.log('AccessToken:', req.session.accessToken);
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ message: 'You must be logged in to access this route' });
+  }
+  const accessToken = req.session.accessToken;
+  try {
     const tracksFromSpotify = await getTracksFromSpotify(accessToken);
     res.json(tracksFromSpotify);
-  };
+  } catch (error) {
+    console.error('Error retrieving tracks from Spotify:', error);
+    res.status(500).json({ message: 'Error retrieving tracks from Spotify' });
+  }
+};
