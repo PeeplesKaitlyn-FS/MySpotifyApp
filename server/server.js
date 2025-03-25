@@ -1,26 +1,58 @@
 const express = require("express");
 require('dotenv').config();
-console.log(process.env);
-console.log(process.env.SPOTIFY_CLIENT_ID);
-console.log(process.env.SPOTIFY_CLIENT_SECRET);
 const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
 const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 const app = express();
 
-const spotifyStrategy = new SpotifyStrategy({
+// Set up database connection
+mongoose.connect(process.env.DATABASE_URL)
+  .then(() => console.log('Database connection established'))
+  .catch((error) => {
+    console.error('Error connecting to database:', error);
+    process.exit(1);
+  });
+
+// Set up passport
+passport.use(new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   callbackURL: '/callback',
 }, (accessToken, refreshToken, expires_in, profile, done) => {
-  return done(null, profile, accessToken, refreshToken);
+  const user = { accessToken, refreshToken, expires_in, profile };
+  return done(null, user);
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user);
 });
 
-passport.use(spotifyStrategy); 
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false },
+  store: new MongoDBStore({
+    uri: process.env.DATABASE_URL,
+    collection: 'sessions'
+  })
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
 
 app.get('/auth/spotify', passport.authenticate('spotify', {
   scope: ['user-read-email', 'user-read-private'],
@@ -29,48 +61,26 @@ app.get('/auth/spotify', passport.authenticate('spotify', {
 app.get('/callback', passport.authenticate('spotify', {
   failureRedirect: '/login',
 }), (req, res) => {
-  req.session.accessToken = req.user.accessToken;
+  req.session.user = req.user;
   res.redirect('/tracks');
 });
 
-app.use(cors());
-app.use(express.json());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-const DATABASE_URL = process.env.DATABASE_URL;
-
-mongoose.connect(DATABASE_URL)
-  .then(() => console.log('Database connection established'))
-  .catch((error) => {
-    console.error('Error connecting to database:', error);
-    process.exit(1);
-  });
-
-const songRouter = require("./routes/song");
-app.use("/songs", songRouter);
-
 const tracksRouter = require("./routes/tracks");
-app.use("/tracks", (req, res, next) => {
-  tracksRouter.router(req, res, next);
-});
+app.use("/tracks", tracksRouter);
+
+const profileRouter = require("./routes/profile");
+app.use("/profile", profileRouter);
+
+const playlistsRouter = require("./routes/playlists");
+app.use("/playlists", playlistsRouter);
 
 const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
 
+app.use(cors());
+app.use(express.json());
+
 const PORT = 3000;
-
-app.use(express.static(path.join(__dirname, "../client/public")));
-
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/public", "index.html"));
-});
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
