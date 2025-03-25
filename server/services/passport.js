@@ -3,7 +3,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const JwtStrategy = require('passport-jwt').Strategy;
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const localStrategy = require('passport-local');
-const mongoose = require('mongoose');
 
 const User = require('../models/user');
 const config = require('../config');
@@ -50,23 +49,20 @@ const spotifyOptions = {
   callbackURL: '/auth/spotify/callback',
 };
 
-const spotifyLogin = new SpotifyStrategy(spotifyOptions, (accessToken, refreshToken, expires_in, profile, done) => {
-  User.findOne({ spotifyId: profile.id }, (err, user) => {
-    if (err) {
-      return done(err);
-    }
+const spotifyLogin = new SpotifyStrategy(spotifyOptions, async (accessToken, refreshToken, expires_in, profile, done) => {
+  try {
+    const user = await User.findOne({ spotifyId: profile.id, email: profile.emails[0].value, accessToken, refreshToken, expires_in });
     if (!user) {
-      const newUser = new User({ spotifyId: profile.id });
-      newUser.save((err) => {
-        if (err) {
-          return done(err);
-        }
-        return done(null, newUser);
-      });
+      const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+      const newUser = new User({ spotifyId: profile.id, email });
+      await newUser.save();
+      done(null, newUser);
     } else {
-      return done(null, user);
+      done(null, user);
     }
-  });
+  } catch (err) {
+    done(err);
+  }
 });
 
 passport.use(localLogin);
