@@ -69,6 +69,11 @@ passport.use(localLogin);
 passport.use(jwtLogin);
 passport.use(spotifyLogin);
 
+passport.use('signout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
