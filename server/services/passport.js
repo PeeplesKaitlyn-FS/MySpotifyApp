@@ -2,6 +2,7 @@ const passport = require('passport');
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const JwtStrategy = require('passport-jwt').Strategy;
 const localStrategy = require('passport-local');
+const mongoose = require('mongoose');
 
 const User = require('../models/user');
 const config = require('../config');
@@ -30,16 +31,33 @@ const jwtOptions = {
     secretOrKey: config.secret
 };
 
-const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done){
-    User.findById(payload.sub, function(error, user){
-        if(error){return done(error, false)}
-        if(user) {
-            done(null, user)
-        }else {
-            done(null, false)
-        }
-    })
-})
+const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
+  try {
+    const user = await User.findOne({ spotifyId: payload.sub });
+    if (!user) {
+      return done(null, false);
+    }
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
 
 passport.use(localLogin);
 passport.use(jwtLogin);
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id).exec();
+        if (!user) {
+            return done(null, false);
+        }
+        done(null, user);
+    } catch (err) {
+        done(err, null);
+    }
+});
