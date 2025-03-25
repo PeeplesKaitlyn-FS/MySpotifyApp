@@ -1,6 +1,7 @@
 const passport = require('passport');
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const JwtStrategy = require('passport-jwt').Strategy;
+const SpotifyStrategy = require('passport-spotify').Strategy;
 const localStrategy = require('passport-local');
 const mongoose = require('mongoose');
 
@@ -43,8 +44,34 @@ const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   }
 });
 
+const spotifyOptions = {
+  clientID: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  callbackURL: '/auth/spotify/callback',
+};
+
+const spotifyLogin = new SpotifyStrategy(spotifyOptions, (accessToken, refreshToken, expires_in, profile, done) => {
+  User.findOne({ spotifyId: profile.id }, (err, user) => {
+    if (err) {
+      return done(err);
+    }
+    if (!user) {
+      const newUser = new User({ spotifyId: profile.id });
+      newUser.save((err) => {
+        if (err) {
+          return done(err);
+        }
+        return done(null, newUser);
+      });
+    } else {
+      return done(null, user);
+    }
+  });
+});
+
 passport.use(localLogin);
 passport.use(jwtLogin);
+passport.use(spotifyLogin);
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
