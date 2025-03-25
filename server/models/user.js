@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
         required: 'Password is required',
         minlength: [8, 'Password must be at least 8 characters long']
     },
+    accessToken: {
+        type: String
+    },
     created_at: { 
         type: Date,
         required: true,
@@ -28,7 +31,6 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', function (next){
     const user = this;
     if(user.isNew || user.isModified('password')){
-        // run hashing and salting
         bcrypt.genSalt(10, (error, salt) => {
             if(error) {return next(error)}
             bcrypt.hash(user.password, salt, null, (error, hash) => {
