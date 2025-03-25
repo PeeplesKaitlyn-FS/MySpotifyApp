@@ -1,12 +1,16 @@
 import React from 'react';
+import { BrowserRouter, Route } from 'react-router-dom';
+import Login from './pages/Login';
+import Callback from './pages/Callback';
 import SearchBar from './pages/SearchBar';
-import './styles/style.css';
 
 const App = () => {
   return (
-    <div>
-      <SearchBar />
-    </div>
+    <BrowserRouter>
+        <Route path="/login" component={Login} />
+        <Route path="/callback" component={Callback} />
+        <Route path="/" component={SearchBar} />
+    </BrowserRouter>
   );
 };
 
