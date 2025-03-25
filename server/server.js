@@ -8,6 +8,7 @@ const path = require("path");
 const cors = require("cors");
 const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
+const session = require('express-session');
 
 const spotifyStrategy = new SpotifyStrategy({
   clientID: process.env.SPOTIFY_CLIENT_ID,
@@ -22,7 +23,14 @@ passport.use(spotifyStrategy);
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(session({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
 app.use(passport.initialize());
+app.use(passport.session());
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -33,6 +41,9 @@ db.once("open", () => console.log("Database Connection Established"));
 
 const songRouter = require("./routes/song");
 app.use("/songs", songRouter);
+
+const tracksRouter = require("./routes/tracks");
+app.use("/tracks", tracksRouter.router);
 
 const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
