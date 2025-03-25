@@ -51,9 +51,9 @@ const spotifyOptions = {
 
 const spotifyLogin = new SpotifyStrategy(spotifyOptions, async (accessToken, refreshToken, expires_in, profile, done) => {
   try {
-    const user = await User.findOne({ spotifyId: profile.id, email: profile.emails[0].value, accessToken, refreshToken, expires_in });
+    const user = await User.findOne({ spotifyId: profile.id });
     if (!user) {
-      const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+      const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
       const newUser = new User({ spotifyId: profile.id, email });
       await newUser.save();
       done(null, newUser);
