@@ -7,8 +7,8 @@ router.get('/callback', authenticationController.callback);
 router.post('/signup', authenticationController.signup);
 
 router.get('/tracks', authenticationController.getTracks);
-module.exports = (app) => {
-    app.use('/tracks', router);
-  };
+router.get('/playlists', authenticationController.getPlaylists);
+
+router.get('/signout', authenticationController.signout);
 
 module.exports = router;
