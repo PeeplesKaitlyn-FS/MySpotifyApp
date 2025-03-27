@@ -9,10 +9,10 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {},
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.4.0"
   },
   "browserslist": {
     "production": [
