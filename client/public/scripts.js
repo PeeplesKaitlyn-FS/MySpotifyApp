@@ -31,7 +31,17 @@ loginForm.addEventListener('submit', async (event) => {
   const password = document.getElementById('password').value;
 
   try {
-    const accessToken = await getAccessToken();
+    const response = await fetch(authUrl, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: new URLSearchParams({
+        grant_type: 'password',
+        username,
+        password,
+      }),
+    });
+    const data = await response.json();
+    const accessToken = data.access_token;
     console.log(`Access Token: ${accessToken}`);
   } catch (error) {
     console.error(error);
