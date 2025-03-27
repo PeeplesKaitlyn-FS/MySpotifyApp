@@ -30,9 +30,9 @@ const Login = () => {
       <h1>Music Search App</h1>
       <p>In order to use this app you must be logged in!</p>
       <form onSubmit={handleLogin}>
-        <label for="username">Username:</label>
+        <label htmlFor="username">Username:</label>
         <input type="text" id="username" value={username} onChange={(event) => setUsername(event.target.value)} /><br />
-        <label for="password">Password:</label>
+        <label htmlFor="password">Password:</label>
         <input type="password" id="password" value={password} onChange={(event) => setPassword(event.target.value)} /><br />
         <button type="submit">Login</button>
       </form>
