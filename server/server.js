@@ -61,8 +61,22 @@ app.get('/auth/spotify', passport.authenticate('spotify', {
 app.get('/callback', passport.authenticate('spotify', {
   failureRedirect: '/login',
 }), (req, res) => {
+  if (!req.user) {
+    return res.status(401).send('Unauthorized');
+  }
   req.session.user = req.user;
   res.redirect('/tracks');
+});
+
+app.get('/login', (req, res) => {
+  res.send('You need to login');
+});
+
+app.use((req, res, next) => {
+  if (!req.session.user) {
+    return res.status(401).send('Unauthorized');
+  }
+  next();
 });
 
 const tracksRouter = require("./routes/tracks");
@@ -79,6 +93,11 @@ app.use("/auth", authRouter);
 
 app.use(cors());
 app.use(express.json());
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send('Internal Server Error');
+});
 
 const PORT = 3000;
 
