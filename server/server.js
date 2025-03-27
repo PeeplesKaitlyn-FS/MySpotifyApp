@@ -54,10 +54,6 @@ app.get('/', (req, res) => {
   res.send('Server is running!');
 });
 
-app.get('/auth/spotify', passport.authenticate('spotify', {
-  scope: ['user-read-email', 'user-read-private'],
-}));
-
 app.get('/callback', passport.authenticate('spotify', {
   failureRedirect: '/login',
 }), (req, res) => {
@@ -66,10 +62,6 @@ app.get('/callback', passport.authenticate('spotify', {
   }
   req.session.user = req.user;
   res.redirect('/tracks');
-});
-
-app.get('/login', (req, res) => {
-  res.send('You need to login');
 });
 
 app.use((req, res, next) => {
