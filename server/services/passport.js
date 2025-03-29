@@ -33,12 +33,13 @@ const jwtOptions = {
 
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
-    const user = await User.findOne({ spotifyId: payload.sub });
+    const user = await User.findById(payload.sub);
     if (!user) {
       return done(null, false);
     }
     done(null, user);
   } catch (err) {
+    console.error('Error handling JWT authentication:', err);
     done(err, null);
   }
 });
@@ -61,6 +62,7 @@ const spotifyLogin = new SpotifyStrategy(spotifyOptions, async (accessToken, ref
       done(null, user);
     }
   } catch (err) {
+    console.error('Error handling Spotify authentication:', err);
     done(err);
   }
 });
@@ -68,11 +70,6 @@ const spotifyLogin = new SpotifyStrategy(spotifyOptions, async (accessToken, ref
 passport.use(localLogin);
 passport.use(jwtLogin);
 passport.use(spotifyLogin);
-
-passport.use('signout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -86,6 +83,7 @@ passport.deserializeUser(async (id, done) => {
         }
         done(null, user);
     } catch (err) {
+        console.error('Error deserializing user:', err);
         done(err, null);
     }
 });
