@@ -5,20 +5,24 @@ const axios = require('axios');
 console.log('Loading tracks.js');
 
 router.get('/callback', async (req, res) => {
-  console.log('Rendering /callback route');
-  const code = req.query.code;
-  const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', {
-    grant_type: 'authorization_code',
-    code,
-    redirect_uri: 'http://localhost:3000/callback',
-    client_id: process.env.SPOTIFY_CLIENT_ID,
-    client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-  });
+  try {
+    const code = req.query.code;
+    const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', {
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: 'https://localhost:3000/callback',
+      client_id: process.env.SPOTIFY_CLIENT_ID,
+      client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+    });
 
-  const accessToken = tokenResponse.data.access_token;
-  req.session.accessToken = accessToken;
+    const accessToken = tokenResponse.data.access_token;
+    req.session.accessToken = accessToken;
 
-  res.redirect('/');
+    res.redirect('/');
+  } catch (error) {
+    console.error('Error getting access token:', error);
+    res.status(500).json({ error: 'Failed to get access token' });
+  }
 });
 
 router.get('/', async (req, res) => {
@@ -31,15 +35,10 @@ router.get('/', async (req, res) => {
   try {
     const tracks = await getTracksFromSpotify(req.session.accessToken);
     console.log('Tracks:', tracks);
-    res.send(`
-      <h1>Tracks</h1>
-      <ul>
-        ${tracks.map(track => `<li>${track.track.name} by ${track.track.artists[0].name}</li>`).join('')}
-      </ul>
-    `);
+    res.json(tracks);
   } catch (error) {
     console.error('Error getting tracks:', error);
-    res.status(500).send('Failed to get tracks');
+    res.status(500).json({ error: 'Failed to get tracks' });
   }
 });
 
@@ -61,4 +60,5 @@ const getTracksFromSpotify = async (accessToken) => {
   }
   return tracks;
 };
+
 module.exports = router;
