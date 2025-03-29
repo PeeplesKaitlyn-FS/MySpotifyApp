@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
+// Login.js
+import React from 'react';
 
 const Login = () => {
   const handleLogin = () => {
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const redirectUri = encodeURIComponent('http://localhost:3000/callback');
-    const scope = 'user-read-private user-read-email user-read-playback-state user-modify-playback-state';
-    const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
-    window.location.href = url;
+    window.location.href = '/auth/spotify';
   };
 
   return (
