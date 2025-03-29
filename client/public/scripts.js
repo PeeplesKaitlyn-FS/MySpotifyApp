@@ -1,24 +1,19 @@
-const loginForm = document.getElementById('login-form');
-const searchForm = document.getElementById('search-form');
+const url = 'https://accounts.spotify.com/authorize';
+const redirectUri = 'https://localhost:3000/auth/spotify/callback';
+const clientId = '4b75d6b58d724cf6b61af5c5afa0d275';
+const state = 'some_state';
 
-const clientId = process.env.SPOTIFY_CLIENT_ID;
-const redirectUri = 'http://localhost:3000/callback'; 
-const scopes = 'user-read-playback-state user-modify-playback-state';
-const state = 'some_state'; 
-
-const authorizeUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}&state=${state}&response_type=code`;
-
-loginForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  window.location.href = authorizeUrl;
+const params = new URLSearchParams({
+  client_id: clientId,
+  response_type: 'code',
+  redirect_uri: redirectUri,
+  state: state,
+  scope: 'user-read-private user-read-email',
 });
 
+window.location.href = `${url}?${params.toString()}`;
 
-const callbackUrl = '/callback';
-
-
-const handleCallback = async (event) => {
-  event.preventDefault();
+const handleCallbackUrl = async () => {
   const code = new URLSearchParams(window.location.search).get('code');
   const state = new URLSearchParams(window.location.search).get('state');
 
@@ -28,7 +23,7 @@ const handleCallback = async (event) => {
   }
 
   try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
+    const response = await fetch('/api/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -58,7 +53,7 @@ const handleCallback = async (event) => {
 };
 
 window.addEventListener('load', () => {
-  if (window.location.pathname === callbackUrl) {
-    handleCallback();
+  if (window.location.pathname === '/callback') {
+    handleCallbackUrl();
   }
 });
