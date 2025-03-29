@@ -7,7 +7,7 @@ const passport = require('passport');
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
-
+console.log(process.env.SPOTIFY_CLIENT_ID);
 const app = express();
 
 // Set up database connection
@@ -54,6 +54,16 @@ app.get('/', (req, res) => {
   res.send('Server is running!');
 });
 
+app.get('/api/auth/spotify', (req, res) => {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const redirectUri = 'https://localhost:3000/callback';
+  const scope = 'user-read-private user-read-email';
+
+  const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+
+  res.redirect(url);
+});
+
 app.get('/callback', passport.authenticate('spotify', {
   failureRedirect: '/login',
 }), (req, res) => {
@@ -62,6 +72,11 @@ app.get('/callback', passport.authenticate('spotify', {
   }
   req.session.user = req.user;
   res.redirect('/tracks');
+});
+
+app.get('/api/client-id', (req, res) => {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  res.json({ clientId });
 });
 
 app.use((req, res, next) => {
@@ -90,6 +105,8 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).send('Internal Server Error');
 });
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = 3000;
 
