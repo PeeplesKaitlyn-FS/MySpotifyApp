@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 const Callback = () => {
   const [accessToken, setAccessToken] = useState(null);
   const navigate = useNavigate();
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code');
@@ -13,7 +15,7 @@ const Callback = () => {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `grant_type=authorization_code&code=${code}&redirect_uri=http://localhost:3000/callback`,
+        body: `grant_type=authorization_code&code=${code}&redirect_uri=http://localhost:3000/callback&client_id=${clientId}&client_secret=${clientSecret}`,
       })
         .then(response => response.json())
         .then(data => {
