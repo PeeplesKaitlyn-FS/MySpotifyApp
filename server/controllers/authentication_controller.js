@@ -78,12 +78,12 @@ exports.callback = passport.authenticate('spotify', { failureRedirect: '/signin'
   }
   const user = req.user;
   const token = tokenForUser(user);
-  const accessToken = req.user.accessToken = req.query.access_token; 
-  req.session.accessToken = accessToken; 
+  req.session.accessToken = req.user.accessToken;
   res.json({ user_id: user._id, token });
 });
 
 exports.signout = (req, res) => {
+  req.logout();
   res.send({ user_id: null, token: null })
 }
 
@@ -100,6 +100,9 @@ exports.getTracks = async (req, res) => {
     res.json(tracksFromSpotify);
   } catch (error) {
     console.error('Error retrieving tracks from Spotify:', error);
+    if (error instanceof SyntaxError) {
+      console.error('Received HTML response instead of JSON:', error.message);
+    }
     res.status(500).json({ message: 'Error retrieving tracks from Spotify' });
   }
 };
